@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz de Fou</title>
+<style>
+:root{--bg:#f4f7ff;--card:#fff;--tx:#14213d;--b:#1e6bff;--y:#ffc400;--ok:#22b573;--ko:#ef4565}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#e8f0ff,#fff6d6);color:var(--tx);min-height:100vh;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;padding:16px}
+.s{display:none;animation:in .3s}.s.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 6px 20px #1e6bff22;margin-bottom:12px}
+h1,h2{margin:6px 0;text-align:center}
+h1{font-size:2rem;color:var(--b)}
+button{font:inherit;border:0;border-radius:16px;padding:14px;width:100%;margin:5px 0;background:var(--b);color:#fff;font-weight:700;cursor:pointer}
+button.alt{background:#fff;color:var(--tx);border:2px solid #d5def5;text-align:left}
+button.y{background:var(--y);color:#14213d}
+button:active{transform:scale(.97)}
+input,select{font:inherit;width:100%;padding:12px;border-radius:14px;border:2px solid #d5def5;margin:5px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid button{text-align:center;padding:18px 6px}
+.bot{display:block;margin:0 auto;width:120px;animation:fl 2.5s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-6px)}}
+.bubble{background:#fff8d9;border-radius:16px;padding:10px 14px;text-align:center;font-weight:600;margin:6px 0}
+.bar{height:10px;border-radius:9px;background:#dbe4fb;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--y);transition:width 1s linear}
+.top{display:flex;justify-content:space-between;font-weight:700;margin-bottom:6px}
+.ok{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
+.ko{background:var(--ko)!important;color:#fff!important;border-color:var(--ko)!important}
+.big{font-size:3rem;text-align:center;font-weight:800;color:var(--b)}
+.badge{display:inline-block;background:var(--y);border-radius:12px;padding:6px 10px;margin:3px;font-weight:700}
+.jump{text-align:center;animation:jp .7s}.shake{animation:sk .5s}.jump .bot,.shake .bot{animation:none}
+@keyframes jp{0%,100%{transform:translateY(0)}35%{transform:translateY(-22px) rotate(-6deg)}65%{transform:translateY(-10px) rotate(6deg)}}
+@keyframes sk{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+.lang{display:flex;gap:6px}.lang button{padding:8px;margin:0}
+</style></head><body><div id="app">
+
+<div class="s on" id="home">
+ <svg class="bot" viewBox="0 0 120 130"><line x1="60" y1="8" x2="60" y2="28" stroke="#ffc400" stroke-width="5"/><circle cx="60" cy="8" r="7" fill="#ffc400"/><rect x="18" y="28" width="84" height="70" rx="22" fill="#1e6bff"/><rect x="8" y="52" width="10" height="22" rx="5" fill="#ffc400"/><rect x="102" y="52" width="10" height="22" rx="5" fill="#ffc400"/><circle cx="42" cy="58" r="13" fill="#fff"/><circle cx="78" cy="58" r="13" fill="#fff"/><circle cx="44" cy="60" r="6" fill="#14213d"/><circle cx="80" cy="60" r="6" fill="#14213d"/><path d="M44 82q16 12 32 0" stroke="#ffc400" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="40" y="100" width="40" height="22" rx="8" fill="#ffc400"/></svg>
+ <h1>Quiz de Fou</h1>
+ <div class="bubble" id="hello"></div>
+ <div class="card">
+  <div class="lang"><button class="alt" onclick="setL('fr')">🇫🇷 FR</button><button class="alt" onclick="setL('en')">🇬🇧 EN</button><button class="alt" onclick="setL('es')">🇪🇸 ES</button></div>
+  <input id="pseudo" maxlength="14" oninput="saveP()"><select id="age" onchange="saveP()"></select><div id="avs" style="text-align:center;font-size:2rem"></div>
+  <button class="y" id="play" onclick="go('cats')"></button>
+  <button class="alt" id="bProg" onclick="prog()" style="text-align:center"></button><button class="alt" id="bVoice" onclick="togV()" style="text-align:center"></button><div id="vs" style="font-size:.85rem;text-align:center;color:#ef4565"></div><button class="alt" id="bMus" onclick="togM()" style="text-align:center"></button><div id="badges" style="text-align:center"></div>
+ </div>
+</div>
+
+<div class="s" id="pr"><div class="card" id="pg"></div><button class="alt" onclick="go('home')" id="bHome3"></button></div>
+
+<div class="s" id="cats"><h2 id="tCat"></h2><div class="card grid" id="catGrid"></div>
+ <button class="alt" onclick="go('home')" id="back1"></button></div>
+
+<div class="s" id="lvl"><h2 id="tLvl"></h2><div class="card" id="lvlBox"></div></div>
+
+<div class="s" id="q">
+ <div class="top"><span id="qn"></span><span id="sc"></span></div>
+ <div class="bar"><i id="tb"></i></div>
+ <div class="card" style="margin-top:10px"><h2 id="qt"></h2><div id="ans"></div></div>
+ <div class="card" id="exp" style="display:none"><div id="expT"></div><button id="next" onclick="next()"></button></div>
+</div>
+
+<div class="s" id="res">
+ <h2 id="tRes"></h2><div class="big" id="fs"></div>
+ <div class="bubble" id="rmsg"></div>
+ <div class="card" style="text-align:center" id="newB"></div>
+ <button onclick="go('cats')" id="again"></button>
+ <button class="alt" onclick="go('home')" id="home2"></button>
+</div>
+</div>
+
+<script>
+const T={
+fr:{hi:"Salut ! Je suis Q-Bot !",pseudo:"Ton pseudo (ou invité)",play:"Jouer en Solo",cat:"Choisis une catégorie",lvl:"Choisis un niveau",back:"Retour",q:"Question",pts:"pts",next:"Suivant",res:"Résultat",again:"Rejouer",home:"Accueil",guest:"Invité",time:"Temps écoulé !",
+ lv:["Facile (20 s)","Moyen (15 s)","Difficile (10 s)"],cats:{maths:"🔢 Maths",geo:"🌍 Géographie",hist:"🏛️ Histoire",sci:"🔬 Sciences",cult:"🎨 Culture générale",logic:"🧩 Logique"},
+ good:["Bien joué !","Bravo !","Tu es fort, très fort !","Tu es le meilleur !","Waouh, quel cerveau !","En plein dans le mille !","Même moi je suis impressionné !","Tu es un champion !","Tu me bats à plate couture !"],bad:["Aïe ! Tu feras mieux la prochaine fois !","Oups ! Ça arrive même aux meilleurs !","Dis donc, celle-là était piégeuse !","Pas grave, on retente !","Houla ! Mon antenne a fait un court-circuit !","Presque ! Tu y étais presque !","On apprend en jouant !"],
+ end:["Incroyable, tu es le meilleur !","Bien joué, champion !","Tu progresses, continue !","Bravo, on refait une partie ?"],
+ bd:{first:"🌟 Premier pas",brain:"🧠 Super cerveau",fast:"⚡ Éclair",perfect:"🏆 Sans faute"},newb:"Nouveaux badges"},
+en:{hi:"Hi! I'm Q-Bot!",pseudo:"Your nickname (or guest)",play:"Play Solo",cat:"Pick a category",lvl:"Pick a level",back:"Back",q:"Question",pts:"pts",next:"Next",res:"Result",again:"Play again",home:"Home",guest:"Guest",time:"Time's up!",
+ lv:["Easy (20 s)","Medium (15 s)","Hard (10 s)"],cats:{maths:"🔢 Maths",geo:"🌍 Geography",hist:"🏛️ History",sci:"🔬 Science",cult:"🎨 General knowledge",logic:"🧩 Logic"},
+ good:["Well done!","Awesome!","You're so good!","You're the best!","Wow, what a brain!","Bullseye!","Even I'm impressed!","You're a champion!"],bad:["Ouch! You'll do better next time!","Oops! It happens to the best!","Whoa, that one was tricky!","No worries, try again!","Yikes! My antenna short-circuited!","So close!"],
+ end:["Incredible!","Nice game!","Keep going, you're improving!"],
+ bd:{first:"🌟 First step",brain:"🧠 Super brain",fast:"⚡ Lightning",perfect:"🏆 Flawless"},newb:"New badges"},
+es:{hi:"¡Hola! ¡Soy Q-Bot!",pseudo:"Tu apodo (o invitado)",play:"Jugar en Solo",cat:"Elige una categoría",lvl:"Elige un nivel",back:"Volver",q:"Pregunta",pts:"pts",next:"Siguiente",res:"Resultado",again:"Jugar otra vez",home:"Inicio",guest:"Invitado",time:"¡Tiempo!",
+ lv:["Fácil (20 s)","Medio (15 s)","Difícil (10 s)"],cats:{maths:"🔢 Mates",geo:"🌍 Geografía",hist:"🏛️ Historia",sci:"🔬 Ciencias",cult:"🎨 Cultura general",logic:"🧩 Lógica"},
+ good:["¡Bien hecho!","¡Bravo!","¡Qué fuerte eres!","¡Eres el mejor!","¡Guau, qué cerebro!","¡En el blanco!","¡Hasta yo estoy impresionado!","¡Eres un campeón!"],bad:["¡Ay! ¡La próxima lo harás mejor!","¡Vaya! ¡Les pasa hasta a los mejores!","¡Madre mía, esa era trampa!","¡No pasa nada, otra vez!","¡Uy! ¡Mi antena hizo cortocircuito!","¡Casi!"],
+ end:["¡Increíble!","¡Bien jugado!","¡Sigue así!"],
+ bd:{first:"🌟 Primer paso",brain:"🧠 Súper cerebro",fast:"⚡ Rayo",perfect:"🏆 Sin fallos"},newb:"Nuevas insignias"}};
+// Questions en français (6-9 ans) : [catégorie, question, réponses, index bonne réponse, explication]
+const Q=[
+["maths","7 + 8 = ?",["13","14","15","16"],2,"7 + 8 = 15."],
+["maths","6 × 4 = ?",["20","24","28","18"],1,"6 fois 4 font 24."],
+["maths","15 − 9 = ?",["5","6","7","8"],1,"15 − 9 = 6."],
+["maths","Combien de côtés a un triangle ?",["2","3","4","5"],1,"Tri = trois : un triangle a 3 côtés."],
+["maths","Quelle est la moitié de 18 ?",["8","9","10","12"],1,"9 + 9 = 18."],
+["geo","Quelle est la capitale de la France ?",["Lyon","Paris","Marseille","Nice"],1,"Paris est la capitale de la France."],
+["geo","Quel est le plus grand océan ?",["Atlantique","Indien","Pacifique","Arctique"],2,"Le Pacifique est le plus grand océan du monde."],
+["geo","Combien y a-t-il de continents ?",["5","6","7","8"],2,"On compte 7 continents."],
+["geo","Quel pays a la forme d'une botte ?",["Espagne","Italie","Grèce","Portugal"],1,"L'Italie ressemble à une botte !"],
+["geo","Quelle est la capitale de l'Espagne ?",["Madrid","Lisbonne","Rome","Berlin"],0,"Madrid est la capitale de l'Espagne."],
+["hist","Qui a construit les pyramides d'Égypte ?",["Les Romains","Les Vikings","Les Égyptiens de l'Antiquité","Les Gaulois"],2,"Les pyramides sont des tombeaux de pharaons égyptiens."],
+["hist","Dans quel château vivait le roi Louis XIV ?",["Chambord","Versailles","Amboise","Chenonceau"],1,"Louis XIV a fait de Versailles sa résidence."],
+["hist","Qui a atteint l'Amérique en 1492 ?",["Christophe Colomb","Napoléon","Jules César","Charlemagne"],0,"Christophe Colomb a traversé l'Atlantique en 1492."],
+["hist","Qui était Cléopâtre ?",["Reine d'Égypte","Impératrice romaine","Déesse grecque","Reine de France"],0,"Cléopâtre était la dernière reine d'Égypte antique."],
+["hist","Comment s'appelaient les habitants de la Gaule ?",["Les Vikings","Les Gaulois","Les Romains","Les Mayas"],1,"Les Gaulois vivaient en Gaule, l'ancienne France."],
+["sci","Quelle planète est la plus proche du Soleil ?",["Mercure","Vénus","La Terre","Mars"],0,"Mercure est la plus proche du Soleil."],
+["sci","L'eau qui gèle devient…",["De la vapeur","De la glace","Du sable","De l'huile"],1,"À 0 °C, l'eau devient de la glace."],
+["sci","Combien de pattes a une araignée ?",["6","8","10","4"],1,"Les araignées ont 8 pattes (les insectes en ont 6)."],
+["sci","Quel organe pompe le sang ?",["Le cerveau","Les poumons","Le cœur","L'estomac"],2,"Le cœur pompe le sang dans tout le corps."],
+["sci","Quel gaz respirons-nous pour vivre ?",["Oxygène","Hélium","Azote pur","Fumée"],0,"L'oxygène de l'air est indispensable à la vie."],
+["cult","Bleu + jaune = ?",["Vert","Rouge","Violet","Orange"],0,"Le bleu et le jaune donnent du vert."],
+["cult","Combien y a-t-il de notes dans la gamme ?",["5","7","9","12"],1,"Do, ré, mi, fa, sol, la, si : 7 notes."],
+["cult","Quel animal est surnommé le roi de la jungle ?",["Le lion","Le singe","Le lapin","Le loup"],0,"On dit que le lion est le roi des animaux."],
+["cult","Quel instrument a des touches noires et blanches ?",["La guitare","Le piano","La flûte","Le tambour"],1,"Le piano a un clavier noir et blanc."],
+["cult","Dans quel sport marque-t-on des buts avec les pieds ?",["Le football","Le tennis","La natation","Le judo"],0,"Au football, on tape dans le ballon avec les pieds."],
+["logic","2, 4, 6, … quel nombre suit ?",["7","8","9","10"],1,"On ajoute 2 à chaque fois : 8."],
+["logic","Lundi, mardi, … quel jour suit ?",["Jeudi","Mercredi","Vendredi","Dimanche"],1,"Après mardi vient mercredi."],
+["logic","Quel est l'intrus ?",["Pomme","Poire","Carotte","Banane"],2,"La carotte est un légume, les autres sont des fruits."],
+["logic","J'ai 3 pommes, j'en mange 1 puis 2. Combien m'en reste-t-il ?",["0","1","2","3"],0,"3 − 1 − 2 = 0."],
+["logic","1, 3, 5, 7, … quel nombre suit ?",["8","9","10","11"],1,"On ajoute 2 : 9."],
+["maths","10 × 3 = ?",["13","30","33","20"],1,"10 fois 3 font 30."],
+["maths","Combien de minutes y a-t-il dans une heure ?",["30","60","100","24"],1,"Une heure dure 60 minutes."],
+["maths","20 − 7 = ?",["12","13","14","15"],1,"20 − 7 = 13."],
+["maths","5 × 5 = ?",["20","25","30","10"],1,"5 fois 5 font 25."],
+["maths","Quel est le double de 8 ?",["4","16","18","12"],1,"Le double de 8, c'est 8 + 8 = 16."],
+["geo","Quel est le plus long fleuve de France ?",["La Seine","La Loire","Le Rhône","La Garonne"],1,"La Loire mesure environ 1 000 km."],
+["geo","Dans quel pays se trouve la tour de Pise ?",["France","Italie","Espagne","Grèce"],1,"La tour penchée de Pise est en Italie."],
+["geo","Quel océan borde l'ouest de la France ?",["Atlantique","Pacifique","Indien","Arctique"],0,"La côte ouest de la France donne sur l'océan Atlantique."],
+["geo","Quelle est la capitale de l'Italie ?",["Milan","Rome","Venise","Naples"],1,"Rome est la capitale de l'Italie."],
+["geo","Quel est le plus haut sommet des Alpes ?",["Le mont Blanc","L'Everest","L'Etna","Le Vésuve"],0,"Le mont Blanc culmine à environ 4 800 m."],
+["hist","Qui était Jeanne d'Arc ?",["Une héroïne française","Une reine d'Angleterre","Une exploratrice","Une déesse"],0,"Jeanne d'Arc a défendu la France au Moyen Âge."],
+["hist","Quel monument a été construit pour l'Exposition universelle de 1889 ?",["La tour Eiffel","L'Arc de triomphe","Le Louvre","Notre-Dame"],0,"La tour Eiffel a été terminée en 1889."],
+["hist","À quelle époque vivaient les chevaliers ?",["Au Moyen Âge","À la Préhistoire","Aujourd'hui","Dans l'Égypte antique"],0,"Les chevaliers vivaient au Moyen Âge, dans les châteaux forts."],
+["hist","Que fabriquaient les hommes préhistoriques avec la pierre ?",["Des outils","Des téléphones","Des voitures","Des livres"],0,"Ils taillaient la pierre pour faire des outils et des armes."],
+["hist","Quel peuple a construit le Colisée ?",["Les Romains","Les Gaulois","Les Vikings","Les Égyptiens"],0,"Le Colisée est un grand amphithéâtre romain."],
+["sci","Quel animal pond des œufs ?",["La poule","La vache","Le chat","Le chien"],0,"La poule pond des œufs."],
+["sci","Combien y a-t-il de planètes dans le système solaire ?",["7","8","9","10"],1,"Il y a 8 planètes, de Mercure à Neptune."],
+["sci","Que boivent les plantes pour grandir ?",["De l'eau","Du lait","Du jus","De l'huile"],0,"Les plantes absorbent l'eau par leurs racines."],
+["sci","Quel sens utilise-t-on avec les yeux ?",["L'odorat","La vue","L'ouïe","Le goût"],1,"Les yeux servent à voir : c'est la vue."],
+["sci","Quelle étoile éclaire la Terre le jour ?",["La Lune","Le Soleil","Mars","Sirius"],1,"Le Soleil est une étoile, notre source de lumière."],
+["cult","Quel est le plus grand animal terrestre ?",["L'éléphant","La girafe","L'hippopotame","L'ours"],0,"L'éléphant d'Afrique est le plus grand animal terrestre."],
+["cult","Combien de couleurs a l'arc-en-ciel ?",["5","6","7","8"],2,"Rouge, orange, jaune, vert, bleu, indigo, violet : 7."],
+["cult","Quelle langue parle-t-on en Espagne ?",["Espagnol","Portugais","Italien","Allemand"],0,"En Espagne, on parle espagnol."],
+["cult","Combien de joueurs y a-t-il par équipe sur le terrain au football ?",["9","10","11","12"],2,"Chaque équipe joue à 11."],
+["cult","Quel fruit est jaune et allongé ?",["La banane","La pomme","La fraise","Le raisin"],0,"La banane est jaune et allongée."],
+["logic","5, 10, 15, … quel nombre suit ?",["18","20","25","30"],1,"On ajoute 5 : 20."],
+["logic","Le frère de mon papa est mon…",["Oncle","Cousin","Grand-père","Neveu"],0,"Le frère de ton père est ton oncle."],
+["logic","Quel est le contraire de « chaud » ?",["Froid","Tiède","Brûlant","Sec"],0,"Le contraire de chaud, c'est froid."],
+["logic","Si hier c'était samedi, quel jour sommes-nous ?",["Dimanche","Vendredi","Lundi","Samedi"],0,"Le jour après samedi est dimanche."],
+["logic","Quel est l'intrus : chien, chat, cheval, voiture ?",["Chien","Chat","Cheval","Voiture"],3,"La voiture n'est pas un animal."]];
+
+let L=localStorage.getItem('qf_l')||'fr',cat,tm=[20,15,10],tot,t,iv,qs,i,score,good,fastHit,locked,ac;
+const $=id=>document.getElementById(id),R=a=>a[Math.floor(Math.random()*a.length)];
+function load(){try{return JSON.parse(localStorage.getItem('qf_b')||'[]')}catch(e){return[]}}
+function go(id){document.querySelectorAll('.s').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');if(id==='home')txt();}
+function setL(l){L=l;try{localStorage.setItem('qf_l',l)}catch(e){}txt()}
+let mute=false;try{mute=localStorage.getItem('qf_m')==='1'}catch(e){}
+function say(x){if(mute)return;try{const sy=speechSynthesis,lg={fr:'fr-FR',en:'en-US',es:'es-ES'}[L],u=new SpeechSynthesisUtterance(x);u.lang=lg;const v=sy.getVoices().find(v=>v.lang.replace('_','-').toLowerCase().startsWith(lg.slice(0,2)));if(v)u.voice=v;u.pitch=1.4;u.rate=1.05;u.onerror=e=>{const o=$('vs');if(o)o.textContent='Erreur voix : '+e.error};sy.cancel();setTimeout(()=>sy.speak(u),100)}catch(e){}}
+const VT={fr:["🔊 Voix de Q-Bot : oui","🔇 Voix de Q-Bot : non"],en:["🔊 Q-Bot voice: on","🔇 Q-Bot voice: off"],es:["🔊 Voz de Q-Bot: sí","🔇 Voz de Q-Bot: no"]};
+const VE={fr:["Ce navigateur ne gère pas la voix. Ouvre le fichier avec Chrome.","Aucune voix installée sur ce téléphone. Installe « Synthèse vocale Google » et la voix française."],en:["This browser has no voice support. Open the file with Chrome.","No voice installed. Install Google Text-to-speech and a voice."],es:["Este navegador no admite voz. Abre el archivo con Chrome.","No hay voz instalada. Instala la síntesis de voz de Google."]};
+function togV(){mute=!mute;try{localStorage.setItem('qf_m',mute?'1':'0')}catch(e){}ui();if(mute)return;const n=window.speechSynthesis?speechSynthesis.getVoices().length:-1;$('vs').textContent=n<0?VE[L][0]:n===0?VE[L][1]:'Voix détectées : '+n;say(T[L].hi)}
+try{speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
+function beep(f,d,tp){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=tp||'sine';o.frequency.value=f;g.gain.value=.15;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+const snd={ok:()=>{beep(660,.12);setTimeout(()=>beep(880,.2),120)},ko:()=>beep(180,.4,'sawtooth'),end:()=>[523,659,784,1047].forEach((f,k)=>setTimeout(()=>beep(f,.2),k*150))};
+function txt(){const s=T[L];ui();$('hello').textContent=s.hi;$('pseudo').placeholder=s.pseudo;$('play').textContent=s.play;$('tCat').textContent=s.cat;$('tLvl').textContent=s.lvl;$('back1').textContent=s.back;$('tRes').textContent=s.res;$('again').textContent=s.again;$('home2').textContent=s.home;$('next').textContent=s.next;
+ $('catGrid').innerHTML='';Object.keys(s.cats).forEach(k=>{const b=document.createElement('button');b.className='alt';b.textContent=s.cats[k];b.onclick=()=>{cat=k;lvls()};$('catGrid').appendChild(b)});
+ $('badges').innerHTML=load().map(k=>`<span class="badge">${s.bd[k]}</span>`).join('')}
+function lvls(){$('lvlBox').innerHTML='';T[L].lv.forEach((n,k)=>{const b=document.createElement('button');b.textContent=n+(k===rec()?' '+U[L].rec:'');b.onclick=()=>start(k);$('lvlBox').appendChild(b)});go('lvl')}
+function start(k){tot=tm[k];let pool=Q.filter(q=>q[0]===cat&&(q[5]||0)===P.age);if(pool.length<10)pool=Q.filter(q=>q[0]===cat);qs=pool.sort(()=>Math.random()-.5).slice(0,10);i=0;score=0;good=0;fastHit=false;show();go('q')}
+function show(){locked=false;$('qt').parentNode.classList.remove('shake');const q=qs[i],s=T[L];$('qn').textContent=`${s.q} ${i+1}/${qs.length}`;$('sc').textContent=`${score} ${s.pts}`;$('qt').textContent=q[1];$('exp').style.display='none';
+ $('ans').innerHTML='';q[2].map((a,k)=>[a,k]).sort(()=>Math.random()-.5).forEach(([a,k])=>{const b=document.createElement('button');b.className='alt';b.textContent=a;b.dataset.k=k;b.onclick=()=>pick(k,b);$('ans').appendChild(b)});
+ t=tot;const bar=$('tb');bar.style.transition='none';bar.style.width='100%';setTimeout(()=>{bar.style.transition=`width ${tot}s linear`;bar.style.width='0%'},30);
+ clearInterval(iv);iv=setInterval(()=>{t--;if(t<=0){clearInterval(iv);pick(-1)}},1000)}
+function pick(k,btn){if(locked)return;locked=true;clearInterval(iv);const q=qs[i],s=T[L],ok=k===q[3];
+ $('tb').style.transition='none';
+ document.querySelectorAll('#ans button').forEach(b=>{b.disabled=true;if(+b.dataset.k===q[3])b.classList.add('ok')});
+ let m;if(ok){const bonus=Math.round(50*t/tot);score+=100+bonus;good++;if(tot-t<=3)fastHit=true;m=R(s.good)+` +${100+bonus}`;snd.ok()}
+ else{btn&&btn.classList.add('ko');m=k<0?s.time+' '+R(s.bad):R(s.bad);snd.ko()}
+ $('sc').textContent=`${score} ${s.pts}`;$('expT').innerHTML=`<div class="${ok?'jump':'shake'}">${BOT(ok)}</div><div class="bubble">${ok?'✨':'💫'} ${m}</div><p>💡 ${q[4]}</p>`;const cd=$('qt').parentNode;cd.classList.remove('shake');void cd.offsetWidth;if(!ok)cd.classList.add('shake');$('exp').style.display='block';say(m.replace(/\+\d+/,''))}
+function next(){i++;i<qs.length?show():finish()}
+function finish(){const s=T[L],n=qs.length,old=load(),nw=[];const c=P.c[cat]||{p:0,ok:0,t:0};c.p++;c.ok+=good;c.t+=n;c.l=good/n;P.c[cat]=c;P.g++;P.n+=n;P.ok+=good;P.best=Math.max(P.best,score);saveP();
+ const add=k=>{if(!old.includes(k)){old.push(k);nw.push(k)}};add('first');if(good/n>=.8)add('brain');if(fastHit)add('fast');if(good===n)add('perfect');
+ try{localStorage.setItem('qf_b',JSON.stringify(old))}catch(e){}
+ $('fs').textContent=`${score} ${s.pts}`;const m=R(s.end)+` ${good}/${n}`;$('rmsg').innerHTML=`<div class="jump">${BOT(good/n>=.5)}</div>`+m;
+ $('newB').innerHTML=nw.length?`<b>${s.newb}</b><br>`+nw.map(k=>`<span class="badge">${s.bd[k]}</span>`).join(''):'';
+ go('res');snd.end();say(m)}
+const U={fr:{age:["6-9 ans","10-12 ans","13-17 ans","18 ans et +"],prog:"📊 Ma progression",rec:"⭐ conseillé",games:"Parties jouées",best:"Meilleur score",avg:"Bonnes réponses",bycat:"Par catégorie"},
+en:{age:["6-9 years","10-12 years","13-17 years","18 and over"],prog:"📊 My progress",rec:"⭐ recommended",games:"Games played",best:"Best score",avg:"Correct answers",bycat:"By category"},
+es:{age:["6-9 años","10-12 años","13-17 años","18 y más"],prog:"📊 Mi progreso",rec:"⭐ recomendado",games:"Partidas jugadas",best:"Mejor puntuación",avg:"Respuestas correctas",bycat:"Por categoría"}};
+let P=(()=>{try{return JSON.parse(localStorage.getItem('qf_p'))}catch(e){return null}})()||{age:0,av:'🦊',name:'',g:0,best:0,ok:0,n:0,c:{}};
+function saveP(){P.age=+$('age').value;P.name=$('pseudo').value;try{localStorage.setItem('qf_p',JSON.stringify(P))}catch(e){}}
+function ui(){const u=U[L];$('age').innerHTML=u.age.map((a,k)=>`<option value="${k}">${a}</option>`).join('');$('age').value=P.age;$('pseudo').value=P.name||'';
+ $('avs').innerHTML=['🦊','🐼','🦁','🐙','🚀','🐸'].map(a=>`<span onclick="P.av='${a}';saveP();ui()" style="cursor:pointer;padding:2px 4px;border-radius:12px;${a===P.av?'background:#ffc400':''}">${a}</span>`).join('');$('bProg').textContent=u.prog;$('bVoice').textContent=VT[L][mute?1:0];$('bMus').textContent=MT[L][mus?0:1];$('bHome3').textContent=T[L].home}
+function rec(){let r=[0,1,1,2][P.age];const c=P.c[cat];if(c){if(c.l>=.8)r++;else if(c.l<=.4)r--}return Math.max(0,Math.min(2,r))}
+function prog(){const u=U[L],s=T[L];$('pg').innerHTML=`<div class="big">${P.av} ${P.name||s.guest}</div><p>${u.games} : <b>${P.g}</b></p><p>${u.best} : <b>${P.best}</b></p><p>${u.avg} : <b>${P.n?Math.round(100*P.ok/P.n):0}%</b></p><h3>${u.bycat}</h3>`+Object.keys(s.cats).map(k=>{const c=P.c[k],x=c?Math.round(100*c.ok/c.t):0;return `<div>${s.cats[k]} ${x}%<div class="bar"><i style="width:${x}%;transition:none;background:#1e6bff"></i></div></div>`}).join('')+`<div style="margin-top:10px">`+load().map(k=>`<span class="badge">${s.bd[k]}</span>`).join('')+`</div>`;go('pr')}
+const BOT=ok=>`<svg class="bot" style="width:84px" viewBox="0 0 120 130"><line x1="60" y1="8" x2="60" y2="28" stroke="#ffc400" stroke-width="5"/><circle cx="60" cy="8" r="7" fill="#ffc400"/><rect x="18" y="28" width="84" height="70" rx="22" fill="#1e6bff"/><rect x="8" y="52" width="10" height="22" rx="5" fill="#ffc400"/><rect x="102" y="52" width="10" height="22" rx="5" fill="#ffc400"/><circle cx="42" cy="58" r="13" fill="#fff"/><circle cx="78" cy="58" r="13" fill="#fff"/><circle cx="44" cy="${ok?60:64}" r="6" fill="#14213d"/><circle cx="80" cy="${ok?60:64}" r="6" fill="#14213d"/><path d="${ok?'M44 82q16 12 32 0':'M44 92q16 -12 32 0'}" stroke="#ffc400" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="40" y="100" width="40" height="22" rx="8" fill="#ffc400"/></svg>`;
+const MT={fr:["🎵 Musique : oui","🔇 Musique : non"],en:["🎵 Music: on","🔇 Music: off"],es:["🎵 Música: sí","🔇 Música: no"]};
+let mus=true;try{mus=localStorage.getItem('qf_mu')!=='0'}catch(e){}
+let mi=null,mk=0;const MEL=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];
+function tone(f,d){try{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.035,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function mstart(){if(!mus||mi)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){return}
+ mi=setInterval(()=>{tone(MEL[mk%16]/2,.35);if(mk%4===0)tone(MEL[mk%16]/4,.5);mk++},400)}
+function mstop(){clearInterval(mi);mi=null}
+function togM(){mus=!mus;try{localStorage.setItem('qf_mu',mus?'1':'0')}catch(e){}mus?mstart():mstop();ui()}
+document.addEventListener('click',mstart);
+document.addEventListener('visibilitychange',()=>document.hidden?mstop():mstart());
+txt();
+</script></body></html>
